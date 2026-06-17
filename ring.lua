@@ -1,5 +1,5 @@
 -- ==========================================
--- GLUE PIECE - YUI HUB V10 (MAX MOBILE + ANTI-WATER + FIX BOSS)
+-- GLUE PIECE - YUI HUB V11 (KHÔI PHỤC FULL CHỨC NĂNG + ANTI-WATER)
 -- ==========================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8,7 +8,7 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
-local guiName = "GluePiece_YuiStyle_V10"
+local guiName = "GluePiece_YuiStyle_V11"
 local CoreGui = pcall(function() return game:GetService("CoreGui").Name end) and game:GetService("CoreGui") or LocalPlayer.PlayerGui
 
 if CoreGui:FindFirstChild(guiName) then CoreGui[guiName]:Destroy() end
@@ -54,7 +54,7 @@ local MoveList = {"Dịch Chuyển", "Bay Mượt (Tween)"}
 local SkillKeys = {"Q", "E", "R", "T", "F", "Z", "X", "C", "V"}
 
 -- ==========================================
--- 2. UI THEME (MAX MOBILE COMPACT)
+-- 2. UI THEME (MOBILE COMPACT)
 -- ==========================================
 local Colors = {
     BG = Color3.fromRGB(15, 17, 26),
@@ -85,7 +85,7 @@ OpenBtn.Draggable = true
 Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(0, 8)
 Instance.new("UIStroke", OpenBtn).Color = Colors.Green
 
--- KHUNG CHÍNH (Siêu nhỏ gọn cho Điện Thoại: 480x280)
+-- KHUNG CHÍNH (Thu nhỏ cho Điện Thoại: 480x280)
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Size = UDim2.new(0, 480, 0, 280)
 MainFrame.Position = UDim2.new(0.5, -240, 0.5, -140)
@@ -126,7 +126,7 @@ local TitleBot = Instance.new("TextLabel", TopBar)
 TitleBot.Size = UDim2.new(0, 200, 0, 20)
 TitleBot.Position = UDim2.new(0, 20, 0.5, -10)
 TitleBot.BackgroundTransparency = 1
-TitleBot.Text = "Glue Piece V10 - Mobile"
+TitleBot.Text = "Glue Piece V11 - Ultimate"
 TitleBot.TextColor3 = Colors.Green
 TitleBot.Font = Enum.Font.GothamBold
 TitleBot.TextSize = 13
@@ -363,7 +363,7 @@ local function CreateSlider(parent, text, min, max, globalVar)
     local SliderBg = Instance.new("Frame", Frame)
     SliderBg.Size = UDim2.new(1, -16, 0, 4)
     SliderBg.Position = UDim2.new(0, 8, 0, 24)
-    SliderBg.BackgroundColor3 = Color.fromRGB(40,45,60)
+    SliderBg.BackgroundColor3 = Color3.fromRGB(40,45,60)
     Instance.new("UICorner", SliderBg).CornerRadius = UDim.new(1, 0)
 
     local Fill = Instance.new("Frame", SliderBg)
@@ -427,7 +427,7 @@ local function CreateButton(parent, text, callback)
 end
 
 -- ==========================================
--- 4. TẠO TABS CHỨC NĂNG
+-- 4. TẠO TABS CHỨC NĂNG (GẦN GIỐNG V8)
 -- ==========================================
 
 -- TAB 1: SĂN BOSS 
@@ -542,6 +542,33 @@ local SecESP = CreateSection(TabItems, "ESP (Nhìn xuyên tường)")
 CreateToggle(SecESP, "Bật ESP Item", "ESPItem")
 CreateToggle(SecESP, "Bật ESP Boss", "ESPBoss")
 
+-- VÒNG LẶP ESP
+task.spawn(function()
+    local ESP_Color = {Item = Color3.fromRGB(0, 255, 136), Boss = Color3.fromRGB(255, 50, 50)}
+    while task.wait(1) do
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:FindFirstChild("Yui_ESP") then if (obj:IsA("Tool") and not _G.ESPItem) or (obj:IsA("Model") and not _G.ESPBoss) then obj.Yui_ESP:Destroy() end end
+        end
+        if _G.ESPItem then
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("Tool") and obj.Parent ~= LocalPlayer.Character and obj.Parent ~= LocalPlayer.Backpack and not obj:FindFirstChild("Yui_ESP") then
+                    local bb = Instance.new("BillboardGui", obj) bb.Name = "Yui_ESP" bb.Size = UDim2.new(0, 150, 0, 30) bb.StudsOffset = Vector3.new(0, 2, 0) bb.AlwaysOnTop = true
+                    local txt = Instance.new("TextLabel", bb) txt.Size = UDim2.new(1, 0, 1, 0) txt.BackgroundTransparency = 1 txt.Text = "[ ITEM ] " .. obj.Name txt.TextColor3 = ESP_Color.Item txt.TextScaled = true txt.Font = Enum.Font.GothamBold
+                end
+            end
+        end
+        if _G.ESPBoss then
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("Model") and (table.find(NormalBosses, obj.Name) or table.find(WorldBosses, obj.Name)) and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 and not obj:FindFirstChild("Yui_ESP") then
+                    local bb = Instance.new("BillboardGui", obj) bb.Name = "Yui_ESP" bb.Size = UDim2.new(0, 150, 0, 30) bb.StudsOffset = Vector3.new(0, 4, 0) bb.AlwaysOnTop = true
+                    local txt = Instance.new("TextLabel", bb) txt.Size = UDim2.new(1, 0, 1, 0) txt.BackgroundTransparency = 1 txt.Text = "[ BOSS ] " .. obj.Name txt.TextColor3 = ESP_Color.Boss txt.TextScaled = true txt.Font = Enum.Font.GothamBold
+                end
+            end
+        end
+    end
+end)
+
+
 -- ==========================================
 -- 5. LOGIC DI CHUYỂN AN TOÀN (ANTI-WATER) & ĐÁNH
 -- ==========================================
@@ -583,7 +610,6 @@ local function GetOffsetCFrame(targetCFrame)
     return targetCFrame * CFrame.new(0, 0, dist)
 end
 
--- FIX LỖI "KHÔNG ĐÁNH KHI BẬT AUTO BOSS" (Kiểm tra xem có Boss nào đang bật không)
 local function IsFarmingEnabled()
     if _G.AutoDuck or _G.AutoKyo or _G.AutoFarm then return true end
     for _, v in pairs(_G.FarmBosses) do if v then return true end end
@@ -597,13 +623,12 @@ local function GetStrictTarget()
     if _G.AutoKyo then for _, obj in pairs(workspace:GetDescendants()) do if obj.Name == "Kyo" and obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then return obj end end return nil end
 
     local validTargets = {}
-    -- Thu thập Boss
     for bName, isSelected in pairs(_G.FarmBosses) do
         if isSelected then
             for _, obj in pairs(workspace:GetDescendants()) do if obj.Name == bName and obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then table.insert(validTargets, obj) end end
         end
     end
-    -- Nếu có bật săn Boss thì ưu tiên khóa Boss
+    
     local isBossEnabled = false for _, v in pairs(_G.FarmBosses) do if v then isBossEnabled = true break end end
     if isBossEnabled then
         if #validTargets > 0 then
@@ -612,7 +637,6 @@ local function GetStrictTarget()
         else return nil end
     end
 
-    -- Nếu không có Boss thì Farm Mobs (Nếu AutoFarm = ON)
     if _G.AutoFarm then
         for mName, isSelected in pairs(_G.FarmMobs) do
             if isSelected then
@@ -635,27 +659,21 @@ local function MoveToSafe(hrp, targetCFrame)
     
     local dest
     if distXZ > 150 then
-        -- Nếu mục tiêu cách xa hơn 150 Studs -> Bay lên cao trước để né Biển/Núi
-        if curPos.Y < 200 then
-            dest = CFrame.new(curPos.X, 250, curPos.Z) -- Kéo thẳng lên trời
-        else
-            dest = CFrame.new(tgtPos.X, curPos.Y, tgtPos.Z) -- Bay ngang qua đại dương
-        end
+        if curPos.Y < 200 then dest = CFrame.new(curPos.X, 250, curPos.Z) 
+        else dest = CFrame.new(tgtPos.X, curPos.Y, tgtPos.Z) end
     else
-        dest = targetCFrame -- Cự ly gần thì bay thẳng tới vị trí (Trên đầu, sau lưng...)
+        dest = targetCFrame
     end
 
     if _G.MoveMethod == "Bay Mượt (Tween)" then
         local dist = (curPos - dest.Position).Magnitude
-        if dist > 0 then
-            hrp.CFrame = hrp.CFrame:Lerp(dest, math.clamp(_G.FlySpeed / dist * 0.05, 0, 1))
-        end
+        if dist > 0 then hrp.CFrame = hrp.CFrame:Lerp(dest, math.clamp(_G.FlySpeed / dist * 0.05, 0, 1)) end
     else
         hrp.CFrame = dest
     end
 end
 
--- VÒNG LẶP DI CHUYỂN
+-- VÒNG LẶP DI CHUYỂN VÀ AUTO CLICK
 task.spawn(function()
     while task.wait() do
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid.Health <= 0 then task.wait(2) continue end
@@ -677,7 +695,6 @@ task.spawn(function()
                     pcall(function()
                         local dest = GetOffsetCFrame(targetMob.HumanoidRootPart.CFrame)
                         PreventFalling(hrp)
-                        
                         MoveToSafe(hrp, dest)
                         
                         if _G.AutoAttack then
@@ -693,26 +710,17 @@ task.spawn(function()
     end
 end)
 
--- VÒNG LẶP ESP XUYÊN TƯỜNG
+-- VÒNG LẶP SKILL (ĐÃ ĐƯỢC KHÔI PHỤC)
 task.spawn(function()
-    local ESP_Color = {Item = Color3.fromRGB(0, 255, 136), Boss = Color3.fromRGB(255, 50, 50)}
-    while task.wait(1) do
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:FindFirstChild("Yui_ESP") then if (obj:IsA("Tool") and not _G.ESPItem) or (obj:IsA("Model") and not _G.ESPBoss) then obj.Yui_ESP:Destroy() end end
-        end
-        if _G.ESPItem then
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("Tool") and obj.Parent ~= LocalPlayer.Character and obj.Parent ~= LocalPlayer.Backpack and not obj:FindFirstChild("Yui_ESP") then
-                    local bb = Instance.new("BillboardGui", obj) bb.Name = "Yui_ESP" bb.Size = UDim2.new(0, 150, 0, 30) bb.StudsOffset = Vector3.new(0, 2, 0) bb.AlwaysOnTop = true
-                    local txt = Instance.new("TextLabel", bb) txt.Size = UDim2.new(1, 0, 1, 0) txt.BackgroundTransparency = 1 txt.Text = "[ ITEM ] " .. obj.Name txt.TextColor3 = ESP_Color.Item txt.TextScaled = true txt.Font = Enum.Font.GothamBold
-                end
-            end
-        end
-        if _G.ESPBoss then
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("Model") and (table.find(NormalBosses, obj.Name) or table.find(WorldBosses, obj.Name)) and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 and not obj:FindFirstChild("Yui_ESP") then
-                    local bb = Instance.new("BillboardGui", obj) bb.Name = "Yui_ESP" bb.Size = UDim2.new(0, 150, 0, 30) bb.StudsOffset = Vector3.new(0, 4, 0) bb.AlwaysOnTop = true
-                    local txt = Instance.new("TextLabel", bb) txt.Size = UDim2.new(1, 0, 1, 0) txt.BackgroundTransparency = 1 txt.Text = "[ BOSS ] " .. obj.Name txt.TextColor3 = ESP_Color.Boss txt.TextScaled = true txt.Font = Enum.Font.GothamBold
+    while task.wait(0.2) do
+        if not _G.IsHealing and _G.AutoSkill and IsFarmingEnabled() then
+            for key, isSel in pairs(_G.SelectedSkills) do
+                if isSel then
+                    pcall(function()
+                        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode[key], false, game)
+                        task.wait(0.1)
+                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode[key], false, game)
+                    end)
                 end
             end
         end
