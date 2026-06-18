@@ -1,5 +1,5 @@
 -- ==========================================
--- GLUE PIECE - YUI HUB V15 (MAX FPS, SMOOTH FLY & FLASH ATTACK)
+-- GLUE PIECE - YUI HUB V17 (SMART TARGET & COMBO FULL)
 -- ==========================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8,7 +8,7 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
-local guiName = "GluePiece_YuiStyle_V15"
+local guiName = "GluePiece_YuiStyle_V17"
 local CoreGui = pcall(function() return game:GetService("CoreGui").Name end) and game:GetService("CoreGui") or LocalPlayer.PlayerGui
 
 if CoreGui:FindFirstChild(guiName) then CoreGui[guiName]:Destroy() end
@@ -17,25 +17,24 @@ if CoreGui:FindFirstChild(guiName) then CoreGui[guiName]:Destroy() end
 -- 1. GLOBALS & THIẾT LẬP
 -- ==========================================
 _G.FarmMobs = {}
-_G.FarmBosses = {}
+_G.SelectedBosses = {} -- Danh sách Boss gộp chung (chọn nhiều)
 _G.SelectedSkills = {}
 _G.SelectedWeapons = {}
 _G.SelectedDrop = ""
 _G.SelectedNPC = ""
 
 _G.AutoFarm = false
-_G.AutoDuck = false
-_G.AutoKyo = false
+_G.AutoBoss = false
 _G.AutoSkill = false
 _G.AutoAttack = false
-_G.FastAttack = false -- Flash Attack
+_G.FastAttack = false 
 _G.AutoWeapon = false
 _G.AutoSwitchWeaponFruit = false 
 _G.SwitchDelay = 3 
 _G.AutoKirito = false 
 
-_G.AutoBuso = false -- Haki Vũ Trang (B)
-_G.AutoKen = false  -- Haki Quan Sát (V)
+_G.AutoBuso = false 
+_G.AutoKen = false  
 
 _G.ESPItem = false
 _G.ESPBoss = false
@@ -44,7 +43,7 @@ _G.ESPBoss = false
 _G.AtkPosition = "Trên Đầu"
 _G.AtkDistance = 5
 _G.MoveMethod = "Bay Mượt (Tween)"
-_G.FlySpeed = 300
+_G.FlySpeed = 500
 
 -- Chia Dame & Safe Mode
 _G.SplitDamage = false
@@ -52,8 +51,10 @@ _G.SplitTime = 3
 _G.AutoSafe = false
 _G.SafeHP = 30 
 _G.IsHealing = false
+_G.CurrentTarget = nil 
 
 local MobsList = {"Slime", "Snake", "Thug", "Cutie Noob", "Elite Noob", "Evil Thug"}
+local AllBossesList = {"Duck Boss", "Kyo", "Chara", "Cutie Boss", "King Noob", "Nooby", "Unknown Boss", "King Slime", "Sans", "Shinoa", "Sword Master"}
 local WorldBosses = {"Kyo", "Duck Boss"}
 local NormalBosses = {"Chara", "Cutie Boss", "King Noob", "Nooby", "Unknown Boss", "King Slime", "Sans", "Shinoa", "Sword Master"}
 local NPCList = {"Awakening Book", "Black Leg", "Limitless", "OFA [Deku]", "Busoshoku", "Observation", "Random Fruity", "Reset Fruity", "Reset Stats", "Dual Sword", "Geppo", "Soru"}
@@ -78,6 +79,7 @@ local ScreenGui = Instance.new("ScreenGui", CoreGui)
 ScreenGui.Name = guiName
 ScreenGui.ResetOnSpawn = false
 
+-- NÚT MỞ UI (MINIMIZED)
 local OpenBtn = Instance.new("TextButton", ScreenGui)
 OpenBtn.Size = UDim2.new(0, 40, 0, 40)
 OpenBtn.Position = UDim2.new(0, 10, 0.5, -20)
@@ -131,7 +133,7 @@ local TitleBot = Instance.new("TextLabel", TopBar)
 TitleBot.Size = UDim2.new(0, 200, 0, 20)
 TitleBot.Position = UDim2.new(0, 20, 0.5, -10)
 TitleBot.BackgroundTransparency = 1
-TitleBot.Text = "Glue Piece V15 - Max Speed"
+TitleBot.Text = "Glue Piece V17 - Perfect"
 TitleBot.TextColor3 = Colors.Green
 TitleBot.Font = Enum.Font.GothamBold
 TitleBot.TextSize = 13
@@ -438,12 +440,9 @@ end
 
 -- TAB 1: SĂN BOSS 
 local TabBoss = CreateTab("Săn Boss")
-local SecSpecial = CreateSection(TabBoss, "Boss Thế Giới")
-CreateToggle(SecSpecial, "[ VIP ] Auto Kyo", "AutoKyo")
-CreateToggle(SecSpecial, "[ HOT ] Auto Duck Boss", "AutoDuck")
-
-local SecBossList = CreateSection(TabBoss, "Công Tắc Từng Boss")
-for _, boss in ipairs(NormalBosses) do CreateToggle(SecBossList, "Săn: " .. boss, "FarmBosses", boss) end
+local SecBossSet = CreateSection(TabBoss, "Cài Đặt Đánh Boss")
+CreateDropdown(SecBossSet, "Danh Sách Boss (Chọn nhiều)", AllBossesList, "SelectedBosses", true)
+CreateToggle(SecBossSet, "Bật Auto Boss (Sẽ ưu tiên Kyo/Duck)", "AutoBoss")
 
 local SecTracker = CreateSection(TabBoss, "Live Boss Tracker")
 local BossNoteLabel = CreateNote(SecTracker, 210)
@@ -451,14 +450,11 @@ local BossNoteLabel = CreateNote(SecTracker, 210)
 task.spawn(function()
     local cYes = "<font color='rgb(0, 255, 136)'>[ YES ]</font> "
     local cNo = "<font color='rgb(255, 80, 80)'>[ NO ]</font> "
-
     while task.wait(1) do
         local alive = {}
         for _, obj in pairs(workspace:GetDescendants()) do if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then alive[obj.Name] = true end end
-
         local txt = "<font color='rgb(0, 255, 136)'>[ BOSS THẾ GIỚI ]</font>\n"
         for _, b in ipairs(WorldBosses) do if alive[b] then txt = txt .. cYes .. b .. "\n" else txt = txt .. cNo .. b .. "\n" end end
-        
         txt = txt .. "\n<font color='rgb(255, 200, 50)'>[ BOSS THƯỜNG ]</font>\n"
         for _, b in ipairs(NormalBosses) do if alive[b] then txt = txt .. cYes .. b .. "\n" else txt = txt .. cNo .. b .. "\n" end end
         BossNoteLabel.Text = txt
@@ -468,27 +464,20 @@ end)
 -- TAB 2: QUÁI THƯỜNG
 local TabFarm = CreateTab("Farm Quái")
 local SecFarm = CreateSection(TabFarm, "Cài Đặt Quái")
-CreateToggle(SecFarm, "TỰ ĐỘNG FARM QUÁI BẬT DƯỚI", "AutoFarm")
-for _, mob in ipairs(MobsList) do CreateToggle(SecFarm, "Đánh: " .. mob, "FarmMobs", mob) end
+CreateDropdown(SecFarm, "Danh Sách Quái", MobsList, "FarmMobs", true)
+CreateToggle(SecFarm, "Bật Tự Động Đánh Quái", "AutoFarm")
 
--- TAB 3: SETTING FARM & OPTIMIZE
+-- TAB 3: SETTING FARM 
 local TabSetting = CreateTab("Cài Đặt Farm")
-
 local SecOpt = CreateSection(TabSetting, "Tối Ưu / Chống Lag")
 CreateButton(SecOpt, "[ OPTIMIZE ] Giảm Lag / Xóa Hiệu Ứng", function()
     settings().Rendering.QualityLevel = 1
     game.Lighting.GlobalShadows = false
     for _, v in pairs(workspace:GetDescendants()) do
-        if v:IsA("Part") or v:IsA("Union") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") then
-            v.Material = Enum.Material.Plastic
-            v.Reflectance = 0
-        elseif v:IsA("Decal") or (v:IsA("Texture") and v.Name ~= "Yui_ESP") then
-            v:Destroy()
-        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-            v.Lifetime = NumberRange.new(0)
-        end
+        if v:IsA("Part") or v:IsA("Union") then v.Material = Enum.Material.Plastic v.Reflectance = 0
+        elseif v:IsA("Decal") or (v:IsA("Texture") and v.Name ~= "Yui_ESP") then v:Destroy()
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then v.Lifetime = NumberRange.new(0) end
     end
-    workspace.Terrain.WaterWaveSize = 0
 end)
 
 local SecSplit = CreateSection(TabSetting, "Chia Dame")
@@ -496,28 +485,27 @@ CreateToggle(SecSplit, "Bật Chia Dame (Nhảy từng con)", "SplitDamage")
 CreateSlider(SecSplit, "Đổi mục tiêu sau (Giây):", 1, 10, "SplitTime")
 
 local SecMove = CreateSection(TabSetting, "Di Chuyển")
-CreateDropdown(SecMove, "Cách Bay Đến Quái", MoveList, "MoveMethod", false)
+CreateDropdown(SecMove, "Cách Bay", MoveList, "MoveMethod", false)
 CreateSlider(SecMove, "Tốc Độ Bay:", 100, 2000, "FlySpeed")
 
 local SecSet = CreateSection(TabSetting, "Góc Đánh")
-CreateToggle(SecSet, "🔥 Flash Attack (Đánh Siêu Tốc Render)", "FastAttack")
-CreateToggle(SecSet, "Đánh Thường (Tool:Activate)", "AutoAttack")
-CreateDropdown(SecSet, "Chọn Hướng Đứng", PosList, "AtkPosition", false)
-CreateSlider(SecSet, "Khoảng cách đánh:", 0, 50, "AtkDistance")
+CreateToggle(SecSet, "🔥 Flash Attack (Siêu Tốc)", "FastAttack")
+CreateToggle(SecSet, "Đánh Thường (Thụ Động)", "AutoAttack")
+CreateDropdown(SecSet, "Hướng Đứng", PosList, "AtkPosition", false)
+CreateSlider(SecSet, "Khoảng cách:", 0, 50, "AtkDistance")
 
 local SecSafe = CreateSection(TabSetting, "Trú Ẩn Hồi Máu")
-CreateToggle(SecSafe, "Tự Động Bay Lên Trời Khi Yếu", "AutoSafe")
-CreateSlider(SecSafe, "Phần trăm máu (%) bỏ chạy:", 10, 90, "SafeHP")
+CreateToggle(SecSafe, "Tự Động Bay Trốn Khi Yếu", "AutoSafe")
+CreateSlider(SecSafe, "HP (%) bỏ chạy:", 10, 90, "SafeHP")
 
 -- TAB 4: SKILL & VŨ KHÍ 
 local TabSkill = CreateTab("Vũ Khí & Skill")
-
 local SecHaki = CreateSection(TabSkill, "Haki Tự Động")
 CreateToggle(SecHaki, "Auto Haki Vũ Trang (B)", "AutoBuso")
 CreateToggle(SecHaki, "Auto Haki Quan Sát (V)", "AutoKen")
 
-local SecSpecialWep = CreateSection(TabSkill, "Vũ Khí Đặc Biệt (Từ Shop)")
-CreateToggle(SecSpecialWep, "Auto Lấy Kiếm Kirito (Dual Sword)", "AutoKirito")
+local SecSpecialWep = CreateSection(TabSkill, "Vũ Khí Đặc Biệt")
+CreateToggle(SecSpecialWep, "Auto Lấy Kiếm Kirito", "AutoKirito")
 
 local SecWeap = CreateSection(TabSkill, "Sử Dụng Vũ Khí")
 local UpdateWeaponMenu = CreateDropdown(SecWeap, "Vũ Khí Trong Túi", {"Chưa quét"}, "SelectedWeapons", true)
@@ -529,18 +517,18 @@ CreateButton(SecWeap, "🔄 Quét Vũ Khí", function()
     _G.SelectedWeapons = {} UpdateWeaponMenu(wpList)
 end)
 CreateToggle(SecWeap, "[ COMBO ] Đổi Liên Tục Vũ Khí <-> Trái", "AutoSwitchWeaponFruit")
-CreateSlider(SecWeap, "Thời gian đổi (Giây):", 1, 10, "SwitchDelay")
+CreateSlider(SecWeap, "Delay đổi (Giây):", 1, 10, "SwitchDelay")
 CreateToggle(SecWeap, "Chỉ Cầm Cứng 1 Vũ Khí", "AutoWeapon")
 
 local SecSkill = CreateSection(TabSkill, "Kỹ Năng")
 CreateDropdown(SecSkill, "Phím Kỹ Năng", SkillKeys, "SelectedSkills", true)
-CreateToggle(SecSkill, "Auto Xả Skill", "AutoSkill")
+CreateToggle(SecSkill, "Auto Xả Skill (Chỉ xả khi có quái)", "AutoSkill")
 
 -- TAB 5: ESP & TELEPORT
-local TabItems = CreateTab("ESP & Dịch Chuyển")
+local TabItems = CreateTab("ESP & Teleport")
 local SecNPC = CreateSection(TabItems, "Shop / NPCs")
 CreateDropdown(SecNPC, "Chọn Shop / NPC", NPCList, "SelectedNPC", false)
-local TeleNPCBtn = CreateButton(SecNPC, "Bay Đến Shop/NPC", function()
+CreateButton(SecNPC, "Bay Đến Shop/NPC", function()
     if _G.SelectedNPC ~= "" then
         for _, obj in pairs(workspace:GetDescendants()) do
             if obj.Name == _G.SelectedNPC and (obj:IsA("Model") or obj:IsA("Folder")) then
@@ -551,7 +539,6 @@ local TeleNPCBtn = CreateButton(SecNPC, "Bay Đến Shop/NPC", function()
         end
     end
 end)
-TeleNPCBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
 
 local SecDrop = CreateSection(TabItems, "Đồ Rơi")
 local UpdateDropMenu = CreateDropdown(SecDrop, "Vật Phẩm Trên Đất", {"Đang chờ..."}, "SelectedDrop", false)
@@ -560,7 +547,7 @@ CreateButton(SecDrop, "🔄 Quét Lại Map", function()
     for _, obj in pairs(workspace:GetDescendants()) do if obj:IsA("Tool") and obj.Parent ~= LocalPlayer.Character and obj.Parent ~= LocalPlayer.Backpack then table.insert(drops, obj.Name) end end
     if #drops == 0 then table.insert(drops, "Trống") end UpdateDropMenu(drops)
 end)
-local TeleDropBtn = CreateButton(SecDrop, "Bay Đến Lượm Đồ", function()
+CreateButton(SecDrop, "Bay Đến Lượm Đồ", function()
     if _G.SelectedDrop ~= "" and _G.SelectedDrop ~= "Trống" then
         for _, obj in pairs(workspace:GetDescendants()) do
             if obj.Name == _G.SelectedDrop and obj:IsA("Tool") then
@@ -571,19 +558,15 @@ local TeleDropBtn = CreateButton(SecDrop, "Bay Đến Lượm Đồ", function()
         end
     end
 end)
-TeleDropBtn.BackgroundColor3 = Colors.Green TeleDropBtn.TextColor3 = Colors.BG
 
-local SecESP = CreateSection(TabItems, "ESP (Nhìn xuyên tường)")
+local SecESP = CreateSection(TabItems, "ESP (Xuyên tường)")
 CreateToggle(SecESP, "Bật ESP Item", "ESPItem")
 CreateToggle(SecESP, "Bật ESP Boss", "ESPBoss")
 
--- VÒNG LẶP ESP
 task.spawn(function()
     local ESP_Color = {Item = Color3.fromRGB(0, 255, 136), Boss = Color3.fromRGB(255, 50, 50)}
     while task.wait(1) do
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:FindFirstChild("Yui_ESP") then if (obj:IsA("Tool") and not _G.ESPItem) or (obj:IsA("Model") and not _G.ESPBoss) then obj.Yui_ESP:Destroy() end end
-        end
+        for _, obj in pairs(workspace:GetDescendants()) do if obj:FindFirstChild("Yui_ESP") then if (obj:IsA("Tool") and not _G.ESPItem) or (obj:IsA("Model") and not _G.ESPBoss) then obj.Yui_ESP:Destroy() end end end
         if _G.ESPItem then
             for _, obj in pairs(workspace:GetDescendants()) do
                 if obj:IsA("Tool") and obj.Parent ~= LocalPlayer.Character and obj.Parent ~= LocalPlayer.Backpack and not obj:FindFirstChild("Yui_ESP") then
@@ -617,32 +600,24 @@ local function PreventFalling(hrp)
 end
 local function AllowFalling(hrp) if hrp:FindFirstChild("AntiFall_Yui") then hrp.AntiFall_Yui:Destroy() end end
 
--- AUTO HAKI THÔNG MINH (Không bật đè)
+-- AUTO HAKI
 task.spawn(function()
     while task.wait(1) do
         local char = LocalPlayer.Character
         if not char or not char:FindFirstChild("Humanoid") or char.Humanoid.Health <= 0 then continue end
-
         if _G.AutoBuso then
-            local hasBuso = char:FindFirstChild("Buso") or char:FindFirstChild("Haki")
-            if not hasBuso then
-                for _, v in pairs(char:GetChildren()) do if v:IsA("Part") and v.Name:match("Arm") and (v.Color == Color3.new(0,0,0) or v.Material == Enum.Material.Neon) then hasBuso = true break end end
-            end
-            if not hasBuso then
-                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.B, false, game) task.wait(0.1) VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.B, false, game)
-            end
+            local hasBuso = false
+            for _, v in pairs(char:GetChildren()) do if v:IsA("Part") and v.Name:match("Arm") and (v.Color == Color3.new(0,0,0) or v.Material == Enum.Material.Neon) then hasBuso = true break end end
+            if not hasBuso then VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.B, false, game) task.wait(0.1) VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.B, false, game) end
         end
-
         if _G.AutoKen then
             local hasKen = char:FindFirstChild("Ken") or char:FindFirstChild("Observation")
-            if not hasKen then
-                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.V, false, game) task.wait(0.1) VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.V, false, game)
-            end
+            if not hasKen then VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.V, false, game) task.wait(0.1) VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.V, false, game) end
         end
     end
 end)
 
--- Vòng lặp Safe Mode
+-- AUTO SAFE
 task.spawn(function()
     while task.wait(0.5) do
         if _G.AutoSafe and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -651,14 +626,68 @@ task.spawn(function()
             if hum.Health > 0 and hrp then
                 local hpPercent = (hum.Health / hum.MaxHealth) * 100
                 if hpPercent < _G.SafeHP then _G.IsHealing = true elseif hpPercent > 90 then _G.IsHealing = false end
-                if _G.IsHealing then 
-                    hrp.CFrame = CFrame.new(hrp.Position.X, math.max(hrp.Position.Y, 1500), hrp.Position.Z) 
-                    PreventFalling(hrp) 
-                end
+                if _G.IsHealing then hrp.CFrame = CFrame.new(hrp.Position.X, math.max(hrp.Position.Y, 1500), hrp.Position.Z) PreventFalling(hrp) end
             end
         end
     end
 end)
+
+-- THUẬT TOÁN TÌM QUÁI THÔNG MINH (SẮP XẾP KHOẢNG CÁCH + ƯU TIÊN)
+local lastTargetIndex = 0
+local function GetStrictTarget()
+    if _G.IsHealing then return nil end
+    local validTargets = {}
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
+    local myPos = hrp.Position
+
+    -- Tìm Boss
+    if _G.AutoBoss then
+        for bName, isSel in pairs(_G.SelectedBosses) do
+            if isSel then
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj.Name == bName and obj:IsA("Model") then
+                        local hum = obj:FindFirstChild("Humanoid")
+                        local root = obj:FindFirstChild("HumanoidRootPart")
+                        if hum and hum.Health > 0 and root then table.insert(validTargets, {Mob = obj, Dist = (root.Position - myPos).Magnitude}) end
+                    end
+                end
+            end
+        end
+    end
+
+    -- Tìm Mobs (Nếu không tìm thấy Boss)
+    if #validTargets == 0 and _G.AutoFarm then
+        for mName, isSel in pairs(_G.FarmMobs) do
+            if isSel then
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj.Name == mName and obj:IsA("Model") then
+                        local hum = obj:FindFirstChild("Humanoid")
+                        local root = obj:FindFirstChild("HumanoidRootPart")
+                        if hum and hum.Health > 0 and root then table.insert(validTargets, {Mob = obj, Dist = (root.Position - myPos).Magnitude}) end
+                    end
+                end
+            end
+        end
+    end
+
+    if #validTargets == 0 then return nil end
+
+    -- Sắp xếp theo khoảng cách (Con nào gần nhất đứng đầu)
+    table.sort(validTargets, function(a, b) return a.Dist < b.Dist end)
+
+    -- Ưu tiên nội bộ (Bất chấp khoảng cách)
+    for _, v in ipairs(validTargets) do if v.Mob.Name == "Duck Boss" then return v.Mob end end
+    for _, v in ipairs(validTargets) do if v.Mob.Name == "Kyo" then return v.Mob end end
+
+    if _G.SplitDamage then
+        lastTargetIndex = lastTargetIndex + 1
+        if lastTargetIndex > #validTargets then lastTargetIndex = 1 end
+        return validTargets[lastTargetIndex].Mob
+    else
+        return validTargets[1].Mob
+    end
+end
 
 local function GetOffsetCFrame(targetCFrame)
     local dist = _G.AtkDistance
@@ -667,47 +696,6 @@ local function GetOffsetCFrame(targetCFrame)
     elseif _G.AtkPosition == "Trước Mặt" then return targetCFrame * CFrame.new(0, 0, -dist) * CFrame.Angles(0, math.rad(180), 0)
     elseif _G.AtkPosition == "Dưới Chân" then return targetCFrame * CFrame.new(0, -dist, 0) * CFrame.Angles(math.rad(90), 0, 0) end
     return targetCFrame * CFrame.new(0, 0, dist)
-end
-
-local function IsFarmingEnabled()
-    if _G.AutoDuck or _G.AutoKyo or _G.AutoFarm then return true end
-    for _, v in pairs(_G.FarmBosses) do if v then return true end end
-    return false
-end
-
-local lastTargetIndex = 0
-local function GetStrictTarget()
-    if _G.AutoDuck then for _, obj in pairs(workspace:GetDescendants()) do if obj.Name == "Duck Boss" and obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then return obj end end return nil end
-    if _G.IsHealing then return nil end
-    if _G.AutoKyo then for _, obj in pairs(workspace:GetDescendants()) do if obj.Name == "Kyo" and obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then return obj end end return nil end
-
-    local validTargets = {}
-    for bName, isSelected in pairs(_G.FarmBosses) do
-        if isSelected then
-            for _, obj in pairs(workspace:GetDescendants()) do if obj.Name == bName and obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then table.insert(validTargets, obj) end end
-        end
-    end
-    
-    local isBossEnabled = false for _, v in pairs(_G.FarmBosses) do if v then isBossEnabled = true break end end
-    if isBossEnabled then
-        if #validTargets > 0 then
-            if _G.SplitDamage then lastTargetIndex = lastTargetIndex + 1 if lastTargetIndex > #validTargets then lastTargetIndex = 1 end return validTargets[lastTargetIndex]
-            else return validTargets[1] end
-        else return nil end
-    end
-
-    if _G.AutoFarm then
-        for mName, isSelected in pairs(_G.FarmMobs) do
-            if isSelected then
-                for _, obj in pairs(workspace:GetDescendants()) do if obj.Name == mName and obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj.Humanoid.Health > 0 then table.insert(validTargets, obj) end end
-            end
-        end
-        if #validTargets > 0 then
-            if _G.SplitDamage then lastTargetIndex = lastTargetIndex + 1 if lastTargetIndex > #validTargets then lastTargetIndex = 1 end return validTargets[lastTargetIndex]
-            else return validTargets[1] end
-        end
-    end
-    return nil
 end
 
 local function MoveToSafe(hrp, targetCFrame)
@@ -719,9 +707,7 @@ local function MoveToSafe(hrp, targetCFrame)
     if distXZ > 150 then
         if curPos.Y < 250 then dest = CFrame.new(curPos.X, 300, curPos.Z) 
         else dest = CFrame.new(tgtPos.X, curPos.Y, tgtPos.Z) end
-    else
-        dest = targetCFrame
-    end
+    else dest = targetCFrame end
 
     if _G.MoveMethod == "Bay Mượt (Tween)" then
         local dist = (curPos - dest.Position).Magnitude
@@ -729,122 +715,115 @@ local function MoveToSafe(hrp, targetCFrame)
             local moveDir = (dest.Position - curPos).Unit
             local step = math.min(_G.FlySpeed * 0.05, dist)
             hrp.CFrame = CFrame.new(curPos + moveDir * step, curPos + moveDir * step + dest.LookVector) * CFrame.Angles(dest:ToEulerAnglesXYZ())
-            hrp.CFrame = hrp.CFrame:Lerp(dest, 0.5) 
-        else
-            hrp.CFrame = dest
-        end
-    else
-        hrp.CFrame = dest
-    end
+        else hrp.CFrame = dest end
+    else hrp.CFrame = dest end
 end
 
--- VÒNG LẶP AUTO ĐỔI VŨ KHÍ / TRÁI ÁC QUỶ (COMBO)
+-- VÒNG LẶP COMBO VŨ KHÍ
 task.spawn(function()
     while task.wait() do
-        if not IsFarmingEnabled() or _G.IsHealing then task.wait(1) continue end
+        if not (_G.AutoFarm or _G.AutoBoss) or _G.IsHealing then task.wait(1) continue end
         local char = LocalPlayer.Character
         if not char or not char:FindFirstChild("Humanoid") or char.Humanoid.Health <= 0 then task.wait(1) continue end
 
         if _G.AutoSwitchWeaponFruit then
-            for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
-                if tool:IsA("Tool") and _G.SelectedWeapons[tool.Name] then tool.Parent = char end
-            end
+            for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do if tool:IsA("Tool") and _G.SelectedWeapons[tool.Name] then tool.Parent = char end end
             task.wait(_G.SwitchDelay)
-            
             char = LocalPlayer.Character
             if char and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
-                for _, tool in pairs(char:GetChildren()) do
-                    if tool:IsA("Tool") then tool.Parent = LocalPlayer.Backpack end
-                end
+                for _, tool in pairs(char:GetChildren()) do if tool:IsA("Tool") then tool.Parent = LocalPlayer.Backpack end end
             end
             task.wait(_G.SwitchDelay)
         else
             if _G.AutoWeapon then
-                for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
-                    if tool:IsA("Tool") and _G.SelectedWeapons[tool.Name] then tool.Parent = char end
-                end
+                for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do if tool:IsA("Tool") and _G.SelectedWeapons[tool.Name] then tool.Parent = char end end
                 task.wait(1)
-            else
-                task.wait(1)
-            end
+            else task.wait(1) end
         end
     end
 end)
 
--- FLASH ATTACK (SIÊU TỐC RENDER)
+-- FLASH ATTACK
 task.spawn(function()
     RunService.RenderStepped:Connect(function()
-        if _G.FastAttack and IsFarmingEnabled() and not _G.IsHealing then
+        if _G.FastAttack and _G.CurrentTarget and not _G.IsHealing then
             local char = LocalPlayer.Character
-            if char then
-                for _, tool in pairs(char:GetChildren()) do
-                    if tool:IsA("Tool") then tool:Activate() end
-                end
-            end
+            if char then for _, tool in pairs(char:GetChildren()) do if tool:IsA("Tool") then tool:Activate() end end end
         end
     end)
 end)
 
--- VÒNG LẶP DI CHUYỂN VÀ ĐÁNH 
+-- VÒNG LẶP DI CHUYỂN CHÍNH (FIX LỖI HOVER & RƠI NƯỚC)
 task.spawn(function()
     while task.wait() do
         local char = LocalPlayer.Character
         if not char or not char:FindFirstChild("Humanoid") or char.Humanoid.Health <= 0 or not char:FindFirstChild("HumanoidRootPart") then 
-            task.wait(1) 
-            continue 
+            _G.CurrentTarget = nil task.wait(1) continue 
         end
         local hrp = char.HumanoidRootPart
 
-        if not _G.IsHealing and IsFarmingEnabled() then
+        if not _G.IsHealing and (_G.AutoFarm or _G.AutoBoss) then
+            PreventFalling(hrp) -- Luôn bật khóa trên không khi farm
+            
             local targetMob = GetStrictTarget()
+            _G.CurrentTarget = targetMob
+
             if targetMob then
                 local attackStartTime = tick()
                 while targetMob and targetMob:FindFirstChild("Humanoid") and targetMob.Humanoid.Health > 0 do
                     if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("Humanoid") or LocalPlayer.Character.Humanoid.Health <= 0 then break end
                     if _G.SplitDamage and (tick() - attackStartTime) >= _G.SplitTime then break end
-                    if _G.IsHealing and not _G.AutoDuck then break end
-                    if not IsFarmingEnabled() then break end
+                    if _G.IsHealing then break end
+                    if not (_G.AutoFarm or _G.AutoBoss) then break end
                     
                     pcall(function()
                         local currentHrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
                         if currentHrp then
                             local dest = GetOffsetCFrame(targetMob.HumanoidRootPart.CFrame)
-                            PreventFalling(currentHrp)
                             MoveToSafe(currentHrp, dest)
                             
-                            -- Đánh thường (Bình thường)
                             if _G.AutoAttack and not _G.FastAttack then
                                 for _, tool in pairs(LocalPlayer.Character:GetChildren()) do if tool:IsA("Tool") then tool:Activate() end end
                             end
                         end
                     end)
-                    task.wait(0.03)
+                    task.wait(0.05)
                 end
             else
-                AllowFalling(hrp)
+                -- TREO LƠ LỬNG KHI CHỜ QUÁI / BOSS
+                if hrp.Position.Y < 100 then hrp.CFrame = CFrame.new(hrp.Position.X, 200, hrp.Position.Z) end
             end
+        else
+            AllowFalling(hrp)
+            _G.CurrentTarget = nil
         end
     end
 end)
 
--- VÒNG LẶP SKILL 
+-- SKILL THÔNG MINH (Chỉ Xả Chiêu Khi Đứng Gần Quái)
 task.spawn(function()
     while task.wait(0.2) do
-        if not _G.IsHealing and _G.AutoSkill and IsFarmingEnabled() then
-            for key, isSel in pairs(_G.SelectedSkills) do
-                if isSel then
-                    pcall(function()
-                        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode[key], false, game)
-                        task.wait(0.1)
-                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode[key], false, game)
-                    end)
+        if not _G.IsHealing and _G.AutoSkill and _G.CurrentTarget and _G.CurrentTarget:FindFirstChild("Humanoid") and _G.CurrentTarget.Humanoid.Health > 0 then
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local targetHrp = _G.CurrentTarget:FindFirstChild("HumanoidRootPart")
+
+            if hrp and targetHrp and (hrp.Position - targetHrp.Position).Magnitude < 100 then
+                for key, isSel in pairs(_G.SelectedSkills) do
+                    if isSel then
+                        pcall(function()
+                            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode[key], false, game)
+                            task.wait(0.1)
+                            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode[key], false, game)
+                        end)
+                    end
                 end
             end
         end
     end
 end)
 
--- VÒNG LẶP SPAM LẤY KIẾM KIRITO
+-- AUTO KIRITO
 task.spawn(function()
     while task.wait(0.1) do
         if _G.AutoKirito then
