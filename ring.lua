@@ -1,5 +1,5 @@
 -- ==========================================
--- HỆ THỐNG GIAO DIỆN (ROCK FRUIT - V13 SPEED MASTER)
+-- HỆ THỐNG GIAO DIỆN (ROCK FRUIT - V14 CHỐNG KẸT)
 -- ==========================================
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
@@ -7,8 +7,8 @@ local Player = game.Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
 
 local existingUI = CoreGui:FindFirstChild("YuiMobileHub") or Player:WaitForChild("PlayerGui"):FindFirstChild("YuiMobileHub")
 if existingUI then existingUI:Destroy() end
@@ -21,14 +21,14 @@ local CloseOverlay = Instance.new("TextButton", ScreenGui)
 CloseOverlay.Size = UDim2.new(1, 0, 1, 0); CloseOverlay.BackgroundTransparency = 1; CloseOverlay.Text = ""; CloseOverlay.ZIndex = 9; CloseOverlay.Visible = false
 
 local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 520, 0, 310); MainFrame.Position = UDim2.new(0.5, -260, 0.5, -155); MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); MainFrame.Active = true; MainFrame.Draggable = true
+MainFrame.Size = UDim2.new(0, 530, 0, 310); MainFrame.Position = UDim2.new(0.5, -265, 0.5, -155); MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); MainFrame.Active = true; MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6); Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(0, 150, 255); Instance.new("UIStroke", MainFrame).Thickness = 1.5
 
 local TopBar = Instance.new("Frame", MainFrame)
 TopBar.Size = UDim2.new(1, 0, 0, 30); TopBar.BackgroundTransparency = 1
 local Title = Instance.new("TextLabel", TopBar)
 Title.Size = UDim2.new(1, -30, 1, 0); Title.Position = UDim2.new(0, 10, 0, 0); Title.BackgroundTransparency = 1; Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Text = "Yui HUB - ROCK FRUIT v13 (Boss & Speed)"; Title.Font = Enum.Font.GothamBold; Title.TextSize = 12; Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Text = "Yui HUB - ROCK FRUIT v14 (Perfect Logic)"; Title.Font = Enum.Font.GothamBold; Title.TextSize = 12; Title.TextXAlignment = Enum.TextXAlignment.Left
 local TitleLine = Instance.new("Frame", TopBar); TitleLine.Size = UDim2.new(0, 2, 0, 14); TitleLine.Position = UDim2.new(0, 4, 0.5, -7); TitleLine.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
 local CloseBtn = Instance.new("TextButton", TopBar)
 CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -30, 0, 0); CloseBtn.BackgroundTransparency = 1; CloseBtn.TextColor3 = Color3.fromRGB(255, 50, 50); CloseBtn.Text = "X"; CloseBtn.Font = Enum.Font.GothamBold; CloseBtn.TextSize = 14
@@ -41,24 +41,20 @@ local ContentContainer = Instance.new("Frame", MainFrame)
 ContentContainer.Size = UDim2.new(1, -125, 1, -35); ContentContainer.Position = UDim2.new(0, 120, 0, 30); ContentContainer.BackgroundTransparency = 1
 
 -- ==========================================
--- THƯ VIỆN GIAO DIỆN
+-- THƯ VIỆN GIAO DIỆN CHUẨN
 -- ==========================================
 local Tabs, ActiveDropdowns = {}, {}
 CloseOverlay.MouseButton1Click:Connect(function() CloseOverlay.Visible = false; for _, drop in pairs(ActiveDropdowns) do drop.Visible = false end end)
 
 local function CreateTab(name, isFirst)
     local btn = Instance.new("TextButton", TabContainer)
-    btn.Size = UDim2.new(1, -5, 0, 30); btn.BackgroundColor3 = isFirst and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(15, 15, 15); btn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150); btn.Text = "  " .. name; btn.Font = Enum.Font.GothamSemibold; btn.TextSize = 11; btn.TextXAlignment = Enum.TextXAlignment.Left
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+    btn.Size = UDim2.new(1, -5, 0, 30); btn.BackgroundColor3 = isFirst and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(15, 15, 15); btn.TextColor3 = isFirst and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150); btn.Text = "  " .. name; btn.Font = Enum.Font.GothamSemibold; btn.TextSize = 11; btn.TextXAlignment = Enum.TextXAlignment.Left; Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
     local Indicator = Instance.new("Frame", btn); Indicator.Size = UDim2.new(0, 3, 1, -10); Indicator.Position = UDim2.new(0, 0, 0, 5); Indicator.BackgroundColor3 = Color3.fromRGB(0, 150, 255); Indicator.BorderSizePixel = 0; Indicator.Visible = isFirst
     local page = Instance.new("Frame", ContentContainer); page.Size = UDim2.new(1, 0, 1, 0); page.BackgroundTransparency = 1; page.Visible = isFirst
-    local LeftCol = Instance.new("ScrollingFrame", page); LeftCol.Size = UDim2.new(0.5, -4, 1, 0); LeftCol.BackgroundTransparency = 1; LeftCol.ScrollBarThickness = 2
-    local LeftLayout = Instance.new("UIListLayout", LeftCol); LeftLayout.Padding = UDim.new(0, 5)
-    local RightCol = Instance.new("ScrollingFrame", page); RightCol.Size = UDim2.new(0.5, -4, 1, 0); RightCol.Position = UDim2.new(0.5, 4, 0, 0); RightCol.BackgroundTransparency = 1; RightCol.ScrollBarThickness = 2
-    local RightLayout = Instance.new("UIListLayout", RightCol); RightLayout.Padding = UDim.new(0, 5)
+    local LeftCol = Instance.new("ScrollingFrame", page); LeftCol.Size = UDim2.new(0.5, -4, 1, 0); LeftCol.BackgroundTransparency = 1; LeftCol.ScrollBarThickness = 2; local LeftLayout = Instance.new("UIListLayout", LeftCol); LeftLayout.Padding = UDim.new(0, 5)
+    local RightCol = Instance.new("ScrollingFrame", page); RightCol.Size = UDim2.new(0.5, -4, 1, 0); RightCol.Position = UDim2.new(0.5, 4, 0, 0); RightCol.BackgroundTransparency = 1; RightCol.ScrollBarThickness = 2; local RightLayout = Instance.new("UIListLayout", RightCol); RightLayout.Padding = UDim.new(0, 5)
     LeftLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() LeftCol.CanvasSize = UDim2.new(0,0,0,LeftLayout.AbsoluteContentSize.Y + 10) end)
     RightLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() RightCol.CanvasSize = UDim2.new(0,0,0,RightLayout.AbsoluteContentSize.Y + 10) end)
-    
     btn.MouseButton1Click:Connect(function()
         for _, t in pairs(Tabs) do t.Btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15); t.Btn.TextColor3 = Color3.fromRGB(150, 150, 150); t.Ind.Visible = false; t.Page.Visible = false end
         btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30); btn.TextColor3 = Color3.fromRGB(255, 255, 255); Indicator.Visible = true; page.Visible = true
@@ -68,8 +64,7 @@ local function CreateTab(name, isFirst)
 end
 
 local function CreateSection(parentCol, titleText)
-    local sec = Instance.new("Frame", parentCol); sec.Size = UDim2.new(1, 0, 0, 0); sec.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    Instance.new("UICorner", sec).CornerRadius = UDim.new(0, 4); Instance.new("UIStroke", sec).Color = Color3.fromRGB(40, 40, 40)
+    local sec = Instance.new("Frame", parentCol); sec.Size = UDim2.new(1, 0, 0, 0); sec.BackgroundColor3 = Color3.fromRGB(20, 20, 20); Instance.new("UICorner", sec).CornerRadius = UDim.new(0, 4); Instance.new("UIStroke", sec).Color = Color3.fromRGB(40, 40, 40)
     local title = Instance.new("TextLabel", sec); title.Size = UDim2.new(1, -10, 0, 22); title.Position = UDim2.new(0, 5, 0, 0); title.BackgroundTransparency = 1; title.TextColor3 = Color3.fromRGB(0, 150, 255); title.Text = titleText; title.Font = Enum.Font.GothamBold; title.TextSize = 11; title.TextXAlignment = Enum.TextXAlignment.Left
     local layout = Instance.new("UIListLayout", sec); layout.Padding = UDim.new(0, 3); layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     local pad = Instance.new("Frame", sec); pad.Size = UDim2.new(1, 0, 0, 22); pad.BackgroundTransparency = 1
@@ -111,7 +106,8 @@ local function CreateSlider(parentSec, text, min, max, varName)
     game:GetService("UserInputService").InputChanged:Connect(function(input) if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then update(input) end end)
 end
 
-local function CreateFloatingDropdown(parentBtn, getItemsFunc, globalVarName, onSelectFunc)
+-- THUẬT TOÁN DROPDOWN MỚI (LƯU TRẠNG THÁI CHUẨN 100%)
+local function CreateSmartDropdown(parentBtn, getItemsFunc, globalVarName)
     local DropFrame = Instance.new("ScrollingFrame", ScreenGui)
     DropFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25); DropFrame.BorderSizePixel = 1; DropFrame.BorderColor3 = Color3.fromRGB(0, 150, 255); DropFrame.ZIndex = 10; DropFrame.Visible = false; DropFrame.ScrollBarThickness = 4
     local Layout = Instance.new("UIListLayout", DropFrame); table.insert(ActiveDropdowns, DropFrame)
@@ -120,22 +116,22 @@ local function CreateFloatingDropdown(parentBtn, getItemsFunc, globalVarName, on
         for _, drop in pairs(ActiveDropdowns) do drop.Visible = false end
         for _, c in ipairs(DropFrame:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
         
-        local items = getItemsFunc()
+        local items = getItemsFunc() -- Trả về bảng object {Text = "Tên Hiển Thị", Value = "Giá Trị Thật"}
         for _, item in ipairs(items) do
             local b = Instance.new("TextButton", DropFrame)
             b.Size = UDim2.new(1, 0, 0, 26); b.BackgroundColor3 = Color3.fromRGB(30, 30, 30); b.Font = Enum.Font.Gotham; b.TextSize = 11; b.TextXAlignment = Enum.TextXAlignment.Left; b.ZIndex = 11
             
-            -- Lấy tên chuẩn để so sánh (Cắt khoảng trắng và tag [])
-            local rawName = string.match(item, "^(.-) %[") or item
-            rawName = rawName:match("^%s*(.-)%s*$")
-            
-            local isSel = false
-            for _, v in pairs(_G[globalVarName]) do if v == rawName then isSel = true break end end
-            b.TextColor3 = isSel and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(200, 200, 200); b.Text = isSel and "  ☑ " .. item or "  ☐ " .. item
+            local isSel = table.find(_G[globalVarName], item.Value) ~= nil
+            b.TextColor3 = isSel and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(200, 200, 200)
+            b.Text = isSel and "  ☑ " .. item.Text or "  ☐ " .. item.Text
             
             b.MouseButton1Click:Connect(function()
-                isSel = not isSel; b.TextColor3 = isSel and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(200, 200, 200); b.Text = isSel and "  ☑ " .. item or "  ☐ " .. item
-                onSelectFunc(rawName, isSel)
+                isSel = not isSel
+                if isSel then table.insert(_G[globalVarName], item.Value) else
+                    local idx = table.find(_G[globalVarName], item.Value); if idx then table.remove(_G[globalVarName], idx) end
+                end
+                b.TextColor3 = isSel and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(200, 200, 200)
+                b.Text = isSel and "  ☑ " .. item.Text or "  ☐ " .. item.Text
             end)
         end
         local btnPos = parentBtn.AbsolutePosition; local btnSize = parentBtn.AbsoluteSize
@@ -145,7 +141,7 @@ local function CreateFloatingDropdown(parentBtn, getItemsFunc, globalVarName, on
 end
 
 -- ==========================================
--- BỘ DATA QUEST & HÀM LÕI
+-- BỘ DATA QUEST & HÀM CHỨC NĂNG LÕI
 -- ==========================================
 local QuestData = {
     {Lv = 1, NPC = "Npc_Quest1", Mob = "Bacon"}, {Lv = 1000, NPC = "Npc_Quest2", Mob = "Bacon Strong"},
@@ -162,9 +158,8 @@ local QuestData = {
 
 local function GetPlayerLevel()
     local lvl = 0
-    local s, r = pcall(function() return tonumber(string.match(Player.PlayerGui.HUD.Main.Frame_Display.LevelText.Text, "%d+")) end)
-    if s and r then lvl = r end
-    if lvl == 0 then s, r = pcall(function() return tonumber(Player.leaderstats.Level.Value) end); if s and r then lvl = r end end
+    pcall(function() lvl = tonumber(string.match(Player.PlayerGui.HUD.Main.Frame_Display.LevelText.Text, "%d+")) or 0 end)
+    if lvl == 0 then pcall(function() lvl = tonumber(Player.leaderstats.Level.Value) or 0 end) end
     return lvl == 0 and 1 or lvl
 end
 
@@ -174,8 +169,8 @@ local function TP(targetObj)
     if char and char:FindFirstChild("HumanoidRootPart") then
         local pos
         if targetObj:IsA("Model") then
-            local part = targetObj:FindFirstChild("HumanoidRootPart") or targetObj:FindFirstChild("Head") or targetObj.PrimaryPart
-            if part then pos = part.CFrame else pos = targetObj:GetPivot() end
+            local p = targetObj:FindFirstChild("HumanoidRootPart") or targetObj:FindFirstChild("Head") or targetObj.PrimaryPart
+            pos = p and p.CFrame or targetObj:GetPivot()
         elseif targetObj:IsA("BasePart") then pos = targetObj.CFrame end
         if pos then char.HumanoidRootPart.CFrame = pos * CFrame.new(0, 3, 0) end
     end
@@ -188,9 +183,7 @@ end
 
 local function FastSkill(key)
     task.spawn(function()
-        VirtualInputManager:SendKeyEvent(true, key, false, game)
-        task.wait(0.01)
-        VirtualInputManager:SendKeyEvent(false, key, false, game)
+        VirtualInputManager:SendKeyEvent(true, key, false, game); task.wait(0.01); VirtualInputManager:SendKeyEvent(false, key, false, game)
     end)
 end
 
@@ -200,8 +193,8 @@ end
 _G.SelectedMobs, _G.SelectedWeapons = {}, {}
 _G.AutoFarm, _G.AutoAttack, _G.AutoEquip = false, false, false
 _G.AutoQuestLevel, _G.AutoFarmLevel = false, false
-_G.WeaponCycleDelay, _G.LastWepTick, _G.WepIdx = 1, 0, 1
 _G.AutoSummonBoss, _G.AutoFarmBoss, _G.SelectedBoss = false, false, "Dark Bacon"
+_G.WepDelay, _G.LastWepTick, _G.WepIdx = 1, 0, 1
 _G.AutoBuyChest, _G.ChestAmount, _G.AutoRandomFruit = false, 5, false
 _G.AttackPos, _G.AttackDist = "Trên đầu", 5
 _G.AutoZ, _G.AutoX, _G.AutoC, _G.AutoV = false, false, false, false
@@ -214,51 +207,47 @@ _G.WalkSpeed, _G.JumpPower, _G.Noclip, _G.Fly, _G.FlySpeed = 16, 50, false, fals
 -- [1] TAB MAIN (FARM MOBS)
 local MainLeft, MainRight = CreateTab("Main", true)
 
-local SecAutoLv = CreateSection(MainLeft, "Auto Level (Chuyên Sâu)")
+local SecAutoLv = CreateSection(MainLeft, "Auto Level Progression")
 CreateToggle(SecAutoLv, "Tự Động Nhận Quest (Theo Lv)", "AutoQuestLevel")
 CreateToggle(SecAutoLv, "Tự Động Farm Quái (Theo Lv)", "AutoFarmLevel")
 
 local SecMob = CreateSection(MainLeft, "Mob Selection (Thủ công)")
 local MobDropBtn = CreateButton(SecMob, "Chọn Quái ▼", function() end)
-CreateFloatingDropdown(MobDropBtn, function()
+CreateSmartDropdown(MobDropBtn, function()
     local mobs = {}
     for _, q in ipairs(QuestData) do
         local maxLv = q.Lv + 999; if q.Lv >= 19000 then maxLv = "Max" end
-        table.insert(mobs, q.Mob .. " [Lv " .. q.Lv .. "-" .. maxLv .. "]")
+        table.insert(mobs, {Text = q.Mob .. " [Lv " .. q.Lv .. "-" .. maxLv .. "]", Value = q.Mob})
     end
     return mobs
-end, "SelectedMobs", function(itemName, isAdded)
-    if isAdded then table.insert(_G.SelectedMobs, itemName) else for i, v in ipairs(_G.SelectedMobs) do if v == itemName then table.remove(_G.SelectedMobs, i) break end end end
-end)
+end, "SelectedMobs")
 
 local SecWep = CreateSection(MainLeft, "Auto Equip Weapon")
 local WepDropBtn = CreateButton(SecWep, "Chọn Nhiều Vũ Khí ▼", function() end)
-CreateFloatingDropdown(WepDropBtn, function()
-    local weps = {}; for _, v in pairs(Player.Backpack:GetChildren()) do if v:IsA("Tool") then table.insert(weps, v.Name) end end; return weps
-end, "SelectedWeapons", function(itemName, isAdded)
-    if isAdded then table.insert(_G.SelectedWeapons, itemName) else for i, v in ipairs(_G.SelectedWeapons) do if v == itemName then table.remove(_G.SelectedWeapons, i) break end end end
-end)
-CreateSlider(SecWep, "Delay Đổi Vũ Khí (s)", 0, 10, "WeaponCycleDelay")
+CreateSmartDropdown(WepDropBtn, function()
+    local weps = {}; for _, v in pairs(Player.Backpack:GetChildren()) do if v:IsA("Tool") then table.insert(weps, {Text = v.Name, Value = v.Name}) end end; return weps
+end, "SelectedWeapons")
+CreateSlider(SecWep, "Delay Đổi Vũ Khí (s)", 0, 10, "WepDelay")
 
 local SecFarm = CreateSection(MainRight, "Farming Config")
 CreateToggle(SecFarm, "Tự Đổi Cầm Vũ Khí (Cycle)", "AutoEquip")
 CreateToggle(SecFarm, "Auto Attack", "AutoAttack")
 CreateToggle(SecFarm, "Auto Farm", "AutoFarm")
 
-
--- [2] TAB BOSS (TÍNH NĂNG MỚI)
+-- [2] TAB BOSS
 local BossLeft, BossRight = CreateTab("Boss", false)
 
 local SecBoss = CreateSection(BossLeft, "Summon Boss")
+_G.TempBossList = {"SelectedBoss"} -- Biến mảng tạm cho UI logic
 local BossDropBtn = CreateButton(SecBoss, "Boss: Dark Bacon", function() end)
-CreateFloatingDropdown(BossDropBtn, function() return {"Dark Bacon", "GooGooGaaGaa"} end, {"SelectedBoss"}, function(itemName, isAdded)
-    if isAdded then _G.SelectedBoss = itemName; BossDropBtn.Text = "Boss: " .. itemName end
+CreateSmartDropdown(BossDropBtn, function() return {{Text = "Dark Bacon", Value = "Dark Bacon"}, {Text = "GooGooGaaGaa", Value = "GooGooGaaGaa"}} end, "TempBossList")
+BossDropBtn.MouseButton1Click:Connect(function() 
+    task.wait(0.2); if #_G.TempBossList > 0 then _G.SelectedBoss = _G.TempBossList[#_G.TempBossList]; BossDropBtn.Text = "Boss: " .. _G.SelectedBoss end 
 end)
 CreateToggle(SecBoss, "Auto Summon Boss", "AutoSummonBoss")
 
 local SecBossFarm = CreateSection(BossRight, "Boss Farm")
 CreateToggle(SecBossFarm, "Auto Farm Boss", "AutoFarmBoss")
-
 
 -- [3] TAB SETTING & SKILLS
 local SetLeft, SetRight = CreateTab("Setting", false)
@@ -268,17 +257,16 @@ local PosBtn = CreateButton(SecPos, "Vị Trí: Trên đầu", function() end)
 PosBtn.MouseButton1Click:Connect(function() PosIdx = PosIdx + 1; if PosIdx > #PosList then PosIdx = 1 end; _G.AttackPos = PosList[PosIdx]; PosBtn.Text = "Vị Trí: " .. _G.AttackPos end)
 CreateSlider(SecPos, "Khoảng Cách", 0, 20, "AttackDist")
 
-local SecSkill = CreateSection(SetRight, "Auto Skills (Siêu Tốc)")
+local SecSkill = CreateSection(SetRight, "Auto Skills (Siêu tốc)")
 CreateToggle(SecSkill, "Dùng Skill Z", "AutoZ"); CreateToggle(SecSkill, "Dùng Skill X", "AutoX")
 CreateToggle(SecSkill, "Dùng Skill C", "AutoC"); CreateToggle(SecSkill, "Dùng Skill V", "AutoV")
 
-
--- [4] TAB TELEPORT & SHOP
+-- [4] TAB TELEPORT & SHOP NPC
 local TpLeft, TpRight = CreateTab("Teleport", false)
-local SecMap = CreateSection(TpLeft, "Island Teleport (Qua Cổng)")
+local SecMap = CreateSection(TpLeft, "Island Teleport (Cổng)")
 local MapList = {"Starter Island", "Jungle", "Desert", "Snow"}; local MapBtn = CreateButton(SecMap, "Đích: Starter Island", function() end); local MapIdx = 1
 MapBtn.MouseButton1Click:Connect(function() MapIdx = MapIdx + 1; if MapIdx > #MapList then MapIdx = 1 end; MapBtn.Text = "Đích: " .. MapList[MapIdx] end)
-CreateButton(SecMap, "✈️ Bay Qua Đảo", function()
+CreateButton(SecMap, "✈️ Bay Qua Đảo (Cổng)", function()
     local gates = workspace:FindFirstChild("Gates")
     if gates and gates:FindFirstChild("TeleportPart") then
         local p = gates.TeleportPart:FindFirstChild(MapList[MapIdx])
@@ -288,26 +276,24 @@ end)
 
 local SecShopNPC = CreateSection(TpRight, "NPC Shops (Cố định)")
 local FixedShops = {"Sword Dealer", "Fruit Dealer", "Blacksmith", "Haki Color", "Haki Dealer"}
+_G.TempShopList = {}
 local ShopDropBtn = CreateButton(SecShopNPC, "Chọn NPC Shop ▼", function() end)
-local targetShopNPC = nil
-CreateFloatingDropdown(ShopDropBtn, function() return FixedShops end, {}, function(itemName, isAdded)
-    if isAdded then targetShopNPC = itemName; ShopDropBtn.Text = "Đã chọn: " .. itemName end
-end)
+CreateSmartDropdown(ShopDropBtn, function() 
+    local t = {}; for _, v in ipairs(FixedShops) do table.insert(t, {Text = v, Value = v}) end; return t 
+end, "TempShopList")
 CreateButton(SecShopNPC, "✈️ Bay Tới NPC Shop", function()
-    if targetShopNPC then
+    local targetShop = _G.TempShopList[#_G.TempShopList]
+    if targetShop then
         for _, fn in ipairs({"NpcWeapon", "NpcRandomFruit", "npcprompt", "NPCs"}) do
             local folder = workspace:FindFirstChild(fn)
             if folder then 
-                for _, v in pairs(folder:GetChildren()) do
-                    if string.find(string.lower(v.Name), string.lower(targetShopNPC)) then TP(v); return end
-                end
+                for _, v in pairs(folder:GetChildren()) do if string.find(string.lower(v.Name), string.lower(targetShop)) then TP(v); return end end
             end
         end
     end
 end)
 
-
--- [5] TAB SHOP (Gacha) & PLAYER
+-- [5] TAB GACHA & PLAYER
 local ShopLeft, PlRight = CreateTab("Gacha & Player", false)
 local SecChest = CreateSection(ShopLeft, "Auto Buy Chest")
 local ChestRow = Instance.new("Frame", SecChest); ChestRow.Size = UDim2.new(1, -10, 0, 26); ChestRow.BackgroundTransparency = 1
@@ -316,11 +302,11 @@ local LayoutChestRow = Instance.new("UIListLayout", ChestRow); LayoutChestRow.Fi
 local btnX5 = Instance.new("TextButton", ChestRow); btnX5.Size = UDim2.new(0.31, 0, 1, 0); btnX5.Text = "x5"; btnX5.BackgroundColor3 = Color3.fromRGB(0, 150, 255); btnX5.TextColor3 = Color3.fromRGB(255,255,255)
 local btnX10 = Instance.new("TextButton", ChestRow); btnX10.Size = UDim2.new(0.31, 0, 1, 0); btnX10.Text = "x10"; btnX10.BackgroundColor3 = Color3.fromRGB(35, 35, 35); btnX10.TextColor3 = Color3.fromRGB(255,255,255)
 local btnX15 = Instance.new("TextButton", ChestRow); btnX15.Size = UDim2.new(0.31, 0, 1, 0); btnX15.Text = "x15"; btnX15.BackgroundColor3 = Color3.fromRGB(35, 35, 35); btnX15.TextColor3 = Color3.fromRGB(255,255,255)
-
 local function ResetChestBtns() btnX5.BackgroundColor3 = Color3.fromRGB(35,35,35); btnX10.BackgroundColor3 = Color3.fromRGB(35,35,35); btnX15.BackgroundColor3 = Color3.fromRGB(35,35,35) end
 btnX5.MouseButton1Click:Connect(function() ResetChestBtns(); btnX5.BackgroundColor3 = Color3.fromRGB(0, 150, 255); _G.ChestAmount = 5 end)
 btnX10.MouseButton1Click:Connect(function() ResetChestBtns(); btnX10.BackgroundColor3 = Color3.fromRGB(0, 150, 255); _G.ChestAmount = 10 end)
 btnX15.MouseButton1Click:Connect(function() ResetChestBtns(); btnX15.BackgroundColor3 = Color3.fromRGB(0, 150, 255); _G.ChestAmount = 15 end)
+
 CreateToggle(SecChest, "Mở Rương Tự Động", "AutoBuyChest")
 CreateToggle(SecChest, "Auto Random Trái", "AutoRandomFruit")
 
@@ -329,13 +315,20 @@ CreateToggle(SecPlMisc, "Xuyên Tường", "Noclip")
 CreateToggle(SecPlMisc, "Bật Bay (Fly)", "Fly")
 CreateSlider(SecPlMisc, "Tốc Độ Bay", 10, 150, "FlySpeed")
 
+-- [6] TAB SERVER
+local SvLeft, SvRight = CreateTab("Server", false)
+local SecSvMan = CreateSection(SvLeft, "Server Manager")
+CreateButton(SecSvMan, "Vào Lại Server (Rejoin)", function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, Player) end)
+local SecPerf = CreateSection(SvRight, "Performance")
+CreateButton(SecPerf, "Xóa Hiệu Ứng", function() for _, v in pairs(workspace:GetDescendants()) do if v:IsA("ParticleEmitter") or v:IsA("Trail") then v:Destroy() end end end)
+
 
 -- ==========================================
--- VÒNG LẶP XỬ LÝ CHÍNH
+-- VÒNG LẶP XỬ LÝ CHÍNH (LOGIC CHỐNG KẸT)
 -- ==========================================
 local FlyBV, FlyBG
 RunService.RenderStepped:Connect(function()
-    -- Xử lý Fly Mượt
+    -- Fly
     if _G.Fly and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = Player.Character.HumanoidRootPart; local hum = Player.Character:FindFirstChild("Humanoid"); local cam = workspace.CurrentCamera
         workspace.Gravity = 0
@@ -352,92 +345,108 @@ RunService.RenderStepped:Connect(function()
         workspace.Gravity = 196.2
         if FlyBV then FlyBV:Destroy(); FlyBV = nil end; if FlyBG then FlyBG:Destroy(); FlyBG = nil end
     end
-    
-    -- Xử lý Noclip & Speed
+    -- Noclip & Speed
     if Player.Character and Player.Character:FindFirstChild("Humanoid") then
         Player.Character.Humanoid.WalkSpeed = _G.WalkSpeed; Player.Character.Humanoid.JumpPower = _G.JumpPower
     end
     if _G.Noclip and Player.Character then for _, v in pairs(Player.Character:GetChildren()) do if v:IsA("BasePart") then v.CanCollide = false end end end
 end)
 
+local LastQuestTick, LastSummonTick = 0, 0
 task.spawn(function()
-    while task.wait(0.01) do -- Chạy siêu nhanh 0.01s để fix delay
+    while task.wait(0.01) do
         local char = Player.Character
         local hrp = char and char:FindFirstChild("HumanoidRootPart")
         if not hrp then continue end
-        
-        -- AUTO SUMMON BOSS
-        if _G.AutoSummonBoss then
-            local bossFolder = workspace:FindFirstChild("NpcBoss")
-            if bossFolder then
-                local summonNpc = bossFolder:FindFirstChild("Npc_SummonBoss")
-                if summonNpc then
-                    local prompt = summonNpc:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    if prompt then
-                        TP(summonNpc); task.wait(0.2); FirePrompt(prompt); task.wait(0.5)
-                        -- Xử lý bấm UI Summon
-                        pcall(function()
-                            local gui = Player.PlayerGui.HUD.Main.Frame_SummonBoss
-                            if gui and gui.Visible then
-                                local btn = gui.ScrollingFrame[_G.SelectedBoss].Main.TextButton
-                                if getconnections then
-                                    for _, c in pairs(getconnections(btn.MouseButton1Click)) do c:Fire() end
-                                    for _, c in pairs(getconnections(btn.Activated)) do c:Fire() end
-                                end
-                                gui.Visible = false
-                            end
-                        end)
-                    end
-                end
-            end
-        end
 
-        -- AUTO NHẬN QUEST THEO LEVEL
+        -- LẤY LEVEL
         local currentQ = QuestData[1]
         local myLevel = GetPlayerLevel()
         for i = #QuestData, 1, -1 do if myLevel >= QuestData[i].Lv then currentQ = QuestData[i]; break end end
 
+        -- AUTO NHẬN QUEST (Gói trong task.spawn để không bị kẹt vòng lặp farm quái)
         if _G.AutoQuestLevel then
             local hasQuest = false
             for _, v in pairs(Player.PlayerGui:GetDescendants()) do if v:IsA("TextLabel") and (string.find(string.lower(v.Text), "defeat") or string.find(string.lower(v.Text), "0/")) and v.Visible then hasQuest = true; break end end
-            if not hasQuest then
-                local questFolders = {workspace:FindFirstChild("NpcQuest"), workspace:FindFirstChild("NPCs"), workspace}
-                for _, f in ipairs(questFolders) do
-                    if f then
-                        for _, v in ipairs(f:GetChildren()) do
-                            if string.find(string.lower(v.Name), string.lower(currentQ.NPC)) then
-                                local prompt = v:FindFirstChildWhichIsA("ProximityPrompt", true)
-                                if prompt then TP(v); task.wait(0.3); FirePrompt(prompt); task.wait(0.5) end
-                                break
-                            end
-                        end
+            
+            if not hasQuest and tick() - LastQuestTick > 3 then
+                LastQuestTick = tick()
+                task.spawn(function()
+                    local npc = workspace:FindFirstChild(currentQ.NPC, true)
+                    if npc then
+                        local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
+                        if prompt then TP(npc); task.wait(0.3); FirePrompt(prompt) end
                     end
-                end
+                end)
             end
         end
 
-        -- AUTO FARM LEVEL THEO QUEST (Đè đè List Mobs)
-        if _G.AutoFarmLevel then _G.SelectedMobs = {currentQ.Mob}; _G.AutoFarm = true end
+        -- AUTO SUMMON BOSS
+        if _G.AutoSummonBoss then
+            local bossAlive = false
+            for _, v in pairs(workspace:GetDescendants()) do if v:IsA("Model") and string.find(string.lower(v.Name), string.lower(_G.SelectedBoss)) and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then bossAlive = true; break end end
+            
+            if not bossAlive and tick() - LastSummonTick > 5 then
+                LastSummonTick = tick()
+                task.spawn(function()
+                    local summonNpc = workspace:FindFirstChild("Npc_SummonBoss", true)
+                    if summonNpc then
+                        TP(summonNpc); task.wait(0.3)
+                        local prompt = summonNpc:FindFirstChildWhichIsA("ProximityPrompt", true)
+                        if prompt then FirePrompt(prompt) end
+                        task.wait(0.5)
+                        pcall(function()
+                            local gui = Player.PlayerGui:FindFirstChild("HUB")
+                            if gui and gui.Main.Frame_SummonBoss.Visible then
+                                local btn = gui.Main.Frame_SummonBoss.ScrollingFrame[_G.SelectedBoss].Main.TextButton
+                                if getconnections then for _, c in pairs(getconnections(btn.MouseButton1Click)) do c:Fire() end; for _, c in pairs(getconnections(btn.Activated)) do c:Fire() end end
+                                gui.Main.Frame_SummonBoss.Visible = false
+                            end
+                        end)
+                    end
+                end)
+            end
+        end
 
-        -- XỬ LÝ VẬT LÝ & TÌM QUÁI TỐC ĐỘ CAO
+        -- AUTO BUY CHEST (Ép vòng liên tục)
+        if _G.AutoBuyChest then
+            task.spawn(function()
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if string.match(string.lower(v.Name), "chest") then
+                        local prompt = v:FindFirstChildWhichIsA("ProximityPrompt", true)
+                        if prompt then TP(v); task.wait(0.2); for i=1, _G.ChestAmount do FirePrompt(prompt); task.wait(0.05) end; break end
+                    end
+                end
+            end)
+            task.wait(1) -- Delay nhặt rương
+        end
+
+        -- AUTO RANDOM FRUIT
+        if _G.AutoRandomFruit then
+            task.spawn(function()
+                local npc = workspace:FindFirstChild("NpcRandomFruit", true)
+                if npc then
+                    local prompt = npc:FindFirstChildWhichIsA("ProximityPrompt", true)
+                    if prompt then TP(npc); task.wait(0.2); FirePrompt(prompt) end
+                end
+            end)
+            task.wait(1)
+        end
+
+        -- XỬ LÝ TARGET & ANTI-FLING (Tìm cực nhanh)
         local bv = hrp:FindFirstChild("AntiFlingBV")
-        if _G.AutoFarm or _G.AutoFarmBoss then
+        if _G.AutoFarm or _G.AutoFarmBoss or _G.AutoFarmLevel then
             for _, v in pairs(char:GetChildren()) do if v:IsA("BasePart") then v.CanCollide = false end end
             if not bv then bv = Instance.new("BodyVelocity", hrp); bv.Name = "AntiFlingBV"; bv.MaxForce = Vector3.new(9e9, 9e9, 9e9); bv.Velocity = Vector3.new(0, 0, 0) end
             
             local target = nil
+            if _G.AutoFarmLevel then _G.SelectedMobs = {currentQ.Mob} end -- Ép Mob theo cấp
             
-            -- Ưu tiên tìm Boss trước nếu bật Farm Boss
             if _G.AutoFarmBoss then
-                for _, v in pairs(workspace:GetDescendants()) do
-                    if v:IsA("Model") and string.find(string.lower(v.Name), string.lower(_G.SelectedBoss)) and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-                        target = v; break
-                    end
-                end
+                for _, v in pairs(workspace:GetDescendants()) do if v:IsA("Model") and string.find(string.lower(v.Name), string.lower(_G.SelectedBoss)) and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then target = v; break end end
             end
             
-            -- Nếu không Farm Boss, thì đi farm quái bình thường
-            if not target and _G.AutoFarm then
+            if not target and (_G.AutoFarm or _G.AutoFarmLevel) then
                 local folders = {workspace:FindFirstChild("mod"), workspace:FindFirstChild("Mob"), workspace:FindFirstChild("Enemies"), workspace}
                 for _, mobName in pairs(_G.SelectedMobs) do
                     for _, f in ipairs(folders) do
@@ -445,10 +454,7 @@ task.spawn(function()
                             for _, v in ipairs(f:GetChildren()) do
                                 if v:IsA("Model") and v.Name ~= Player.Name and v:FindFirstChild("HumanoidRootPart") then
                                     local hum = v:FindFirstChild("Humanoid")
-                                    -- CHỐNG CHẬM: So sánh tên chính xác (plain=true) và Health > 0
-                                    if hum and hum.Health > 0 and (v.Name == mobName or string.find(string.lower(v.Name), string.lower(mobName), 1, true)) then 
-                                        target = v; break 
-                                    end
+                                    if hum and hum.Health > 0 and (v.Name == mobName or string.find(string.lower(v.Name), string.lower(mobName), 1, true)) then target = v; break end
                                 end
                             end
                         end
@@ -470,25 +476,26 @@ task.spawn(function()
             if bv then bv:Destroy() end
         end
 
-        -- CYCLE WEAPON (ĐỔI VŨ KHÍ LIÊN TỤC)
+        -- CHU KỲ ĐỔI VŨ KHÍ (NẾU CHỌN NHIỀU)
         if _G.AutoEquip and char and #_G.SelectedWeapons > 0 then
-            if tick() - _G.LastWepTick >= _G.WeaponCycleDelay then
-                _G.LastWepTick = tick()
-                _G.WepIdx = _G.WepIdx + 1
-                if _G.WepIdx > #_G.SelectedWeapons then _G.WepIdx = 1 end
-                char.Humanoid:UnequipTools()
-                local tool = Player.Backpack:FindFirstChild(_G.SelectedWeapons[_G.WepIdx])
-                if tool then char.Humanoid:EquipTool(tool) end
+            if #_G.SelectedWeapons == 1 then
+                local curW = char:FindFirstChild(_G.SelectedWeapons[1])
+                if not curW then local t = Player.Backpack:FindFirstChild(_G.SelectedWeapons[1]); if t then char.Humanoid:EquipTool(t) end end
+            else
+                if tick() - _G.LastWepTick >= _G.WepDelay then
+                    _G.LastWepTick = tick()
+                    _G.WepIdx = _G.WepIdx + 1; if _G.WepIdx > #_G.SelectedWeapons then _G.WepIdx = 1 end
+                    char.Humanoid:UnequipTools()
+                    local t = Player.Backpack:FindFirstChild(_G.SelectedWeapons[_G.WepIdx]); if t then char.Humanoid:EquipTool(t) end
+                end
             end
         end
 
-        -- AUTO ATTACK & SKILL SIÊU NHANH
-        if _G.AutoAttack and char then for _, t in pairs(char:GetChildren()) do if t:IsA("Tool") then t:Activate() end end end
-        if _G.AutoFarm or _G.AutoAttack or _G.AutoFarmBoss then
-            if _G.AutoZ then FastSkill(Enum.KeyCode.Z) end
-            if _G.AutoX then FastSkill(Enum.KeyCode.X) end
-            if _G.AutoC then FastSkill(Enum.KeyCode.C) end
-            if _G.AutoV then FastSkill(Enum.KeyCode.V) end
+        -- AUTO ATTACK & SKILL
+        if _G.AutoAttack and char then local t = char:FindFirstChildOfClass("Tool"); if t then t:Activate() end end
+        if _G.AutoFarm or _G.AutoAttack or _G.AutoFarmBoss or _G.AutoFarmLevel then
+            if _G.AutoZ then FastSkill(Enum.KeyCode.Z) end; if _G.AutoX then FastSkill(Enum.KeyCode.X) end
+            if _G.AutoC then FastSkill(Enum.KeyCode.C) end; if _G.AutoV then FastSkill(Enum.KeyCode.V) end
         end
     end
 end)
